@@ -249,7 +249,12 @@ function StudyAssistant({ user }: { user: User }) {
   const [micReady, setMicReady] = useState(false);
   const [messages, setMessages] = useState([{ role: "assistant", text: `Hey ${user.display_name.split(" ")[0]} — I’m your KNOMO study buddy. Ask me about ${user.interests.slice(0, 2).join(" or ") || "your syllabus"}.` }]);
   const answer = (question: string) => {
-    const q = question.toLowerCase();
+    const q = question.toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+    if (/^(hi|hello|hey|hiya|good morning|good afternoon|good evening)$/.test(q)) return "Hi! I’m Baymax. How may I help you today?";
+    if (q.includes("how are you")) return "I’m ready to help you learn. What would you like to work on?";
+    if (q.includes("thank") || q.includes("thanks")) return "You’re welcome! What should we explore next?";
+    if (q === "bye" || q.includes("goodbye") || q.includes("see you")) return "Goodbye! I’ll be here whenever you’re ready to learn.";
+    if (q.includes("help") || q.includes("what can you do")) return "I can help with study plans, syllabus topics, reels, progress, interests, and revision. What do you need?";
     if (q.includes("plan") || q.includes("study")) return "Try a focused 25-minute session: choose one syllabus unit, watch one reel, save the key idea, then explain it back in your own words.";
     if (q.includes("reel") || q.includes("video")) return "Use Create reel in the top bar to upload a syllabus-linked video. Your reel is saved to your profile and shared to the feed.";
     if (q.includes("progress") || q.includes("hour")) return `You have logged ${user.study_hours} study hours. Open Progress to see your learning summary and keep building the habit.`;
