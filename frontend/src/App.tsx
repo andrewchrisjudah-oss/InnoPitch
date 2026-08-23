@@ -678,6 +678,7 @@ function ProfilePage({
 }) {
   const [tab, setTab] = useState("reels");
   const [editing, setEditing] = useState(false);
+  const profileReels = reels.filter((reel) => reel.creator === user.username);
   const highlights = [
     {
       label: "Study time",
@@ -742,7 +743,7 @@ function ProfilePage({
             </p>
             <div className="mt-6 grid grid-cols-3 gap-3 sm:max-w-xl">
               {[
-                [reels.length, "reels"],
+                [profileReels.length, "reels"],
                 [183, "study buddies"],
                 [282, "following"],
               ].map(([value, label]) => (
@@ -827,8 +828,8 @@ function ProfilePage({
       </div>
       <div className="mt-1 grid grid-cols-3 gap-1">
         {tab === "reels" ? (
-          reels
-            .concat(reels)
+          profileReels
+            .concat(profileReels)
             .slice(0, 6)
             .map((reel, index) => (
               <button
@@ -894,33 +895,24 @@ function UploadDialog({
   open,
   onOpenChange,
   addReel,
+  token,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   addReel: (r: Reel) => void;
+  token: string;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
-  const publish = () => {
+  const publish = async () => {
     if (!file || !title) return;
-    addReel({
-      id: crypto.randomUUID(),
-      kind: "video",
-      creator: "andrew_judah",
-      name: "Andrew Judah",
-      initials: "AJ",
-      course: "Data structures",
-      unit: "Student reel",
-      title,
-      body: "Student-created syllabus reel",
-      caption: "Fresh from the KNOMO studio.",
-      likes: 0,
-      comments: 0,
-      video: URL.createObjectURL(file),
-      color: "from-fuchsia-500 to-rose-500",
-    });
-    onOpenChange(false);
+    const body = new FormData();
+    body.append("title", title); body.append("course", "Data structures"); body.append("unit", "Student reel"); body.append("file", file);
+    const response = await fetch("/api/reels", { method: "POST", headers: { Authorization: `Bearer ${token}` }, body });
+    if (!response.ok) return;
+    const result = await response.json();
+    addReel(result.reel); setFile(null); setTitle(""); onOpenChange(false);
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -1072,6 +1064,16 @@ export default function App() {
       })
       .finally(() => setChecking(false));
   }, [token]);
+  useEffect(() => {
+    if (!token) return;
+    const loadReels = () => fetch("/api/reels", { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => r.ok ? r.json() : Promise.reject())
+      .then((payload) => setReels((current) => [...payload.reels, ...current.filter((r) => !payload.reels.some((x: Reel) => x.id === r.id))]))
+      .catch(() => undefined);
+    void loadReels();
+    const interval = window.setInterval(loadReels, 10000);
+    return () => window.clearInterval(interval);
+  }, [token]);
   const authenticated = (u: User, t: string) => {
     setUser(u);
     setToken(t);
@@ -1128,6 +1130,7 @@ export default function App() {
           open={upload}
           onOpenChange={setUpload}
           addReel={(reel) => setReels([reel, ...reels])}
+          token={token}
         />
       </div>
     );
@@ -1153,6 +1156,7 @@ export default function App() {
           open={upload}
           onOpenChange={setUpload}
           addReel={(reel) => setReels([reel, ...reels])}
+          token={token}
         />
       </div>
     );
@@ -1227,6 +1231,7 @@ export default function App() {
         open={upload}
         onOpenChange={setUpload}
         addReel={(r) => setReels([r, ...reels])}
+        token={token}
       />
     </div>
   );

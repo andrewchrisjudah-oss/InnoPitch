@@ -1,8 +1,9 @@
 import sqlite3
+import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr, Field
@@ -12,10 +13,12 @@ from backend.database import DB_PATH, connection, hash_password, initialize_data
 ROOT = Path(__file__).resolve().parents[1]
 FRONTEND_DIST = ROOT / "frontend" / "dist"
 VIDEO = ROOT / "assets" / "videos" / "featured-space-facts.mp4"
+UPLOADS = ROOT / "data" / "uploads"
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     initialize_database()
+    UPLOADS.mkdir(parents=True, exist_ok=True)
     yield
 
 app = FastAPI(title="KNOMO API", version="3.0", lifespan=lifespan)
@@ -145,8 +148,38 @@ def update_interests(body: InterestBody,auth=Depends(current_user)):
         return {"user":public_user(row,conn)}
     finally: conn.close()
 
+def reel_json(row: sqlite3.Row) -> dict:
+    initials = "".join(part[0] for part in row["display_name"].split()[:2]).upper()
+    return {"id": row["id"], "kind": "video", "creator": row["username"], "name": row["display_name"], "initials": initials, "course": row["course"], "unit": row["unit"], "title": row["title"], "body": "Student-created syllabus reel", "caption": "Fresh from the KNOMO studio.", "likes": row["likes"], "comments": row["comments"], "video": f"/media/uploads/{row['video_path']}", "color": "from-fuchsia-500 to-rose-500"}
+
+@app.get("/api/reels")
+def reels():
+    with connection() as conn:
+        rows = conn.execute("SELECT r.*,u.username,u.display_name FROM reels r JOIN users u ON u.id=r.user_id ORDER BY r.created_at DESC").fetchall()
+        return {"reels": [reel_json(row) for row in rows]}
+
+@app.post("/api/reels")
+async def create_reel(title: str = Form(...), course: str = Form("Data structures"), unit: str = Form("Student reel"), file: UploadFile = File(...), auth=Depends(current_user)):
+    user, conn = auth
+    suffix = Path(file.filename or "upload.mp4").suffix.lower() or ".mp4"
+    filename = f"{uuid.uuid4().hex}{suffix}"
+    try:
+        (UPLOADS / filename).write_bytes(await file.read())
+        reel_id = uuid.uuid4().hex
+        conn.execute("INSERT INTO reels(id,user_id,title,course,unit,video_path) VALUES(?,?,?,?,?,?)", (reel_id, user["id"], title.strip(), course.strip(), unit.strip(), filename))
+        conn.commit()
+        row = conn.execute("SELECT r.*,u.username,u.display_name FROM reels r JOIN users u ON u.id=r.user_id WHERE r.id=?", (reel_id,)).fetchone()
+        return {"reel": reel_json(row)}
+    finally: conn.close()
+
 @app.get("/media/featured-space-facts.mp4")
 def featured_video(): return FileResponse(VIDEO,media_type="video/mp4",filename="featured-space-facts.mp4")
+
+@app.get("/media/uploads/{filename}")
+def uploaded_video(filename: str):
+    candidate = (UPLOADS / Path(filename).name).resolve()
+    if not candidate.is_file() or UPLOADS.resolve() not in candidate.parents: raise HTTPException(404, "Video not found")
+    return FileResponse(candidate, media_type="video/mp4")
 
 if FRONTEND_DIST.exists():
     app.mount("/assets",StaticFiles(directory=FRONTEND_DIST/"assets"),name="frontend-assets")
