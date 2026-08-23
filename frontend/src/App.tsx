@@ -279,7 +279,7 @@ function StudyAssistant({ user }: { user: User }) {
       <div className="flex gap-2 border-t border-white/10 p-3"><input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder="Ask KNOMO..." className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/10 px-3 text-xs outline-none placeholder:text-white/40" /><button onClick={listen} aria-label="Use microphone" className={`grid size-9 place-items-center rounded-xl ${listening ? "bg-[#C98F9F] text-black" : "bg-white/10"}`}><Mic className="size-4" /></button><button onClick={() => send()} aria-label="Send message" className="grid size-9 place-items-center rounded-xl bg-[#6B1F3A]"><Send className="size-4" /></button></div>
     </div>}
     <button onAnimationEnd={() => { if (!runnerDone) { setRunnerDone(true); setOpen(true); greet(); } }} onClick={() => { if (open) closeChat(); else { setOpen(true); greet(); } }} aria-label={open ? "Close Baymax study assistant" : "Open Baymax study assistant"} className={`${open ? "pointer-events-auto absolute right-5 bottom-0 rounded-full bg-red-700 p-3 shadow-red-900/40" : `baymax-runner pointer-events-auto absolute bottom-0 left-0 ${runnerDone ? "baymax-stopped" : ""}`} relative overflow-hidden transition hover:scale-105`}>
-      {open ? <MessageCircle className="size-6 text-white" /> : <video src="/baymax-intro.mp4#t=0,8" autoPlay muted playsInline className="baymax-figure" />}
+      {open ? <MessageCircle className="size-6 text-white" /> : <video src="/baymax-intro.mp4?v=2#t=0,8" autoPlay muted playsInline className="baymax-figure" />}
     </button>
   </div>;
 }
