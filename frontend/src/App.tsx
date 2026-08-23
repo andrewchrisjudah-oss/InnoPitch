@@ -304,12 +304,19 @@ function Topbar({
   openProfile,
   search,
   setSearch,
+  token,
 }: {
   openUpload: () => void;
   openProfile: () => void;
   search: string;
   setSearch: (value: string) => void;
+  token: string;
 }) {
+  const [users, setUsers] = useState<any[]>([]);
+  const [requestCount, setRequestCount] = useState(0);
+  useEffect(() => { if (search.trim().length < 2) { setUsers([]); return; } const timer = window.setTimeout(() => fetch(`/api/users/search?q=${encodeURIComponent(search)}`, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()).then((x) => setUsers(x.users || [])).catch(() => setUsers([])), 250); return () => window.clearTimeout(timer); }, [search, token]);
+  useEffect(() => { const load = () => fetch("/api/friend-requests", { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()).then((x) => setRequestCount((x.requests || []).length)).catch(() => undefined); void load(); const timer = window.setInterval(load, 10000); return () => window.clearInterval(timer); }, [token]);
+  const request = async (id: number) => { await fetch("/api/friend-requests", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ recipient_id: id }) }); setUsers((list) => list.filter((u) => u.id !== id)); };
   return (
     <header className="glass sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-white/[.07] px-4 lg:px-7">
       <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => window.alert("Use the bottom navigation to switch sections.")}>
@@ -331,14 +338,16 @@ function Topbar({
             <X className="size-4" />
           </button>
         )}
+        {users.length > 0 && <div className="absolute left-0 right-0 top-12 z-50 overflow-hidden rounded-2xl border border-[#C98F9F]/30 bg-[#0B0B0D] p-2 shadow-2xl">{users.map((u) => <div key={u.id} className="flex items-center justify-between gap-3 rounded-xl px-3 py-2 hover:bg-white/10"><div><div className="text-sm font-bold text-white">{u.display_name}</div><div className="text-[11px] text-white/50">@{u.username}</div></div><button onClick={() => request(u.id)} className="rounded-lg bg-[#6B1F3A] px-2 py-1 text-[10px] font-bold text-white">Add</button></div>)}</div>}
       </div>
       <Button variant="accent" className="hidden sm:flex" onClick={openUpload}>
         <Plus className="size-4" />
         Create reel
       </Button>
-      <Button variant="ghost" size="icon" className="relative" onClick={() => window.alert("You’re all caught up — no new notifications.")}>
+      <Button variant="ghost" size="icon" className="relative" onClick={() => window.alert(requestCount ? `You have ${requestCount} friend request${requestCount === 1 ? "" : "s"}.` : "You’re all caught up — no new notifications.")}>
         <Bell className="size-5" />
         <span className="absolute right-2 top-2 size-2 rounded-full bg-rose-500 ring-2 ring-[#0B0B0D]" />
+        {requestCount > 0 && <span className="absolute -right-1 -top-1 rounded-full bg-[#C98F9F] px-1 text-[9px] font-black text-[#0B0B0D]">{requestCount}</span>}
       </Button>
       <button
         onClick={openProfile}
@@ -1213,6 +1222,7 @@ export default function App() {
             openProfile={() => setActive("Profile")}
             search={search}
             setSearch={setSearch}
+            token={token}
           />
           <ProfilePage
             user={user}
@@ -1241,6 +1251,7 @@ export default function App() {
             openProfile={() => setActive("Profile")}
             search={search}
             setSearch={setSearch}
+            token={token}
           />
           {active === "Explore" ? (
             <ExplorePage reels={visible} onOpen={() => setUpload(true)} />
@@ -1267,6 +1278,7 @@ export default function App() {
           openProfile={() => setActive("Profile")}
           search={search}
           setSearch={setSearch}
+          token={token}
         />
         <div className="mx-auto max-w-[1480px] px-4 py-7 lg:px-7">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">

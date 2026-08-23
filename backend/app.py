@@ -50,6 +50,9 @@ class StudyBody(BaseModel):
 class CommentBody(BaseModel):
     body: str = Field(min_length=1, max_length=500)
 
+class FriendRequestBody(BaseModel):
+    recipient_id: int
+
 def public_user(row: sqlite3.Row, conn: sqlite3.Connection) -> dict:
     interests = [r["name"] for r in conn.execute("SELECT i.name FROM interests i JOIN user_interests ui ON ui.interest_id=i.id WHERE ui.user_id=? ORDER BY i.name", (row["id"],))]
     return {"id":row["id"],"email":row["email"],"display_name":row["display_name"],"username":row["username"],"study_hours":round(row["study_seconds"]/3600,1),"streak":row["current_streak"],"interests":interests,"needs_onboarding":len(interests)<3}
@@ -137,7 +140,36 @@ def reset(body: ResetBody):
 
 @app.get("/api/interests")
 def interests():
-    with connection() as conn: return {"interests":[dict(r) for r in conn.execute("SELECT name,icon FROM interests ORDER BY name")]}
+        with connection() as conn: return {"interests":[dict(r) for r in conn.execute("SELECT name,icon FROM interests ORDER BY name")]}
+
+@app.get("/api/users/search")
+def search_users(q: str = "", auth=Depends(current_user)):
+    user, conn = auth
+    try:
+        term = f"%{q.strip()}%"
+        rows = conn.execute("SELECT id,display_name,username FROM users WHERE id != ? AND (username LIKE ? COLLATE NOCASE OR display_name LIKE ? COLLATE NOCASE) ORDER BY username LIMIT 8", (user["id"], term, term)).fetchall()
+        return {"users": [dict(row) for row in rows]}
+    finally: conn.close()
+
+@app.get("/api/friend-requests")
+def list_friend_requests(auth=Depends(current_user)):
+    user, conn = auth
+    try:
+        rows = conn.execute("SELECT r.id,r.status,r.created_at,u.id AS user_id,u.username,u.display_name FROM friend_requests r JOIN users u ON u.id=r.sender_id WHERE r.recipient_id=? AND r.status='pending' ORDER BY r.created_at DESC", (user["id"],)).fetchall()
+        return {"requests": [dict(row) for row in rows]}
+    finally: conn.close()
+
+@app.post("/api/friend-requests")
+def send_friend_request(body: FriendRequestBody, auth=Depends(current_user)):
+    user, conn = auth
+    try:
+        if body.recipient_id == user["id"] or not conn.execute("SELECT 1 FROM users WHERE id=?", (body.recipient_id,)).fetchone(): raise HTTPException(404, "User not found")
+        conn.execute("INSERT INTO friend_requests(sender_id,recipient_id) VALUES(?,?) ON CONFLICT(sender_id,recipient_id) DO UPDATE SET status='pending'", (user["id"], body.recipient_id))
+        conn.commit()
+        return {"message": "Friend request sent"}
+    except sqlite3.IntegrityError as exc:
+        raise HTTPException(409, "Request already sent") from exc
+    finally: conn.close()
 
 @app.put("/api/me/interests")
 def update_interests(body: InterestBody,auth=Depends(current_user)):
