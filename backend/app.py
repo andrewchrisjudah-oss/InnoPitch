@@ -40,6 +40,10 @@ class ResetBody(BaseModel):
 class InterestBody(BaseModel):
     interests: list[str] = Field(min_length=3, max_length=8)
 
+class StudyBody(BaseModel):
+    subject: str = Field(default="General study", min_length=1, max_length=80)
+    duration_seconds: int = Field(ge=0, le=86400)
+
 def public_user(row: sqlite3.Row, conn: sqlite3.Connection) -> dict:
     interests = [r["name"] for r in conn.execute("SELECT i.name FROM interests i JOIN user_interests ui ON ui.interest_id=i.id WHERE ui.user_id=? ORDER BY i.name", (row["id"],))]
     return {"id":row["id"],"email":row["email"],"display_name":row["display_name"],"username":row["username"],"study_hours":round(row["study_seconds"]/3600,1),"streak":row["current_streak"],"interests":interests,"needs_onboarding":len(interests)<3}
@@ -86,6 +90,26 @@ def login(body: LoginBody):
 def me(auth=Depends(current_user)):
     row,conn=auth
     try: return {"user":public_user(row,conn)}
+    finally: conn.close()
+
+@app.post("/api/auth/logout")
+def logout(auth=Depends(current_user)):
+    user, conn = auth
+    try:
+        conn.execute("DELETE FROM sessions WHERE user_id=?", (user["id"],))
+        conn.commit()
+        return {"message": "Signed out"}
+    finally: conn.close()
+
+@app.post("/api/me/study")
+def record_study(body: StudyBody, auth=Depends(current_user)):
+    user, conn = auth
+    try:
+        conn.execute("INSERT INTO study_sessions(user_id,subject,duration_seconds) VALUES(?,?,?)", (user["id"], body.subject.strip(), body.duration_seconds))
+        conn.execute("UPDATE users SET study_seconds=study_seconds+? WHERE id=?", (body.duration_seconds, user["id"]))
+        conn.commit()
+        row = conn.execute("SELECT * FROM users WHERE id=?", (user["id"],)).fetchone()
+        return {"user": public_user(row, conn)}
     finally: conn.close()
 
 @app.post("/api/auth/forgot-password")

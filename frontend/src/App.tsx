@@ -668,10 +668,12 @@ function ProfilePage({
   user,
   reels,
   onCreate,
+  onLogout,
 }: {
   user: User;
   reels: Reel[];
   onCreate: () => void;
+  onLogout: () => void;
 }) {
   const [tab, setTab] = useState("reels");
   const [editing, setEditing] = useState(false);
@@ -763,6 +765,10 @@ function ProfilePage({
               <Button variant="secondary">
                 <UserRound className="size-4" />
                 Find study buddies
+              </Button>
+              <Button variant="secondary" onClick={onLogout}>
+                <LogOut className="size-4" />
+                Sign out
               </Button>
               <Button variant="ghost" size="icon">
                 <Settings className="size-4" />
@@ -991,6 +997,26 @@ export default function App() {
   const [reels, setReels] = useState(initialReels);
   const [upload, setUpload] = useState(false);
   const [search, setSearch] = useState("");
+  const storageKey = user ? `knomo_state_${user.id}` : "";
+  useEffect(() => {
+    if (!storageKey) return;
+    try {
+      const stored = JSON.parse(localStorage.getItem(storageKey) || "null");
+      if (stored) {
+        setFollowing(new Set(stored.following || []));
+        setLiked(new Set(stored.liked || []));
+        setSaved(new Set(stored.saved || []));
+      }
+    } catch {
+      localStorage.removeItem(storageKey);
+    }
+  }, [storageKey]);
+  useEffect(() => {
+    if (!storageKey) return;
+    localStorage.setItem(storageKey, JSON.stringify({
+      following: [...following], liked: [...liked], saved: [...saved],
+    }));
+  }, [storageKey, following, liked, saved]);
   const visible = useMemo(() => {
     const source =
       active === "Saved" ? reels.filter((r) => saved.has(r.id)) : reels;
@@ -1019,6 +1045,7 @@ export default function App() {
     setToken(t);
   };
   const logout = () => {
+    if (token) fetch("/api/auth/logout", { method: "POST", headers: { Authorization: `Bearer ${token}` } }).catch(() => undefined);
     localStorage.removeItem("syllabite_token");
     setToken("");
     setUser(null);
@@ -1061,6 +1088,7 @@ export default function App() {
             user={user}
             reels={reels}
             onCreate={() => setUpload(true)}
+            onLogout={logout}
           />
         </main>
         <MobileNav active={active} setActive={setActive} />
