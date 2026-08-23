@@ -98,4 +98,4 @@ select {
 }
 .baymax-runner { animation: baymax-run 8s linear forwards; }
 .baymax-stopped { transform: translateX(calc(100vw - 9rem)); }
-.baymax-figure { width: 8rem; height: 7rem; object-fit: contain; mix-blend-mode: multiply; }
+.baymax-figure { width: 8rem; height: 7rem; object-fit: contain; }
