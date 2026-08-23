@@ -92,3 +92,8 @@ select {
 .interest-card:hover .interest-card-inner { transform: rotateY(180deg); }
 .interest-card-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 1rem; }
 .interest-card-back { transform: rotateY(180deg); }
+@keyframes baymax-run {
+  0% { transform: translateX(-4rem); }
+  100% { transform: translateX(calc(100vw - 5rem)); }
+}
+.baymax-runner { animation: baymax-run 8s linear infinite; }
