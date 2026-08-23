@@ -997,6 +997,8 @@ export default function App() {
   const [reels, setReels] = useState(initialReels);
   const [upload, setUpload] = useState(false);
   const [search, setSearch] = useState("");
+  const sessionSeconds = useRef(0);
+  const lastTick = useRef(Date.now());
   const storageKey = user ? `knomo_state_${user.id}` : "";
   useEffect(() => {
     if (!storageKey) return;
@@ -1017,6 +1019,35 @@ export default function App() {
       following: [...following], liked: [...liked], saved: [...saved],
     }));
   }, [storageKey, following, liked, saved]);
+  useEffect(() => {
+    if (!token || !user) return;
+    const syncUsage = async (seconds: number) => {
+      if (seconds < 1) return;
+      const sent = Math.floor(seconds);
+      sessionSeconds.current = Math.max(0, sessionSeconds.current - sent);
+      try {
+        const result = await fetch("/api/me/study", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ subject: user.interests[0] || "General study", duration_seconds: sent }),
+        });
+        if (result.ok) {
+          const payload = await result.json();
+          setUser((current) => current ? { ...current, study_hours: payload.user.study_hours } : current);
+        }
+      } catch { /* usage sync retries on the next tick */ }
+    };
+    const tick = () => {
+      const now = Date.now();
+      if (document.visibilityState === "visible") sessionSeconds.current += Math.max(0, (now - lastTick.current) / 1000);
+      lastTick.current = now;
+      if (sessionSeconds.current >= 30) void syncUsage(sessionSeconds.current);
+    };
+    const interval = window.setInterval(tick, 1000);
+    const flush = () => { tick(); if (sessionSeconds.current > 0) void syncUsage(sessionSeconds.current); };
+    window.addEventListener("beforeunload", flush);
+    return () => { window.clearInterval(interval); window.removeEventListener("beforeunload", flush); flush(); };
+  }, [token, user?.id]);
   const visible = useMemo(() => {
     const source =
       active === "Saved" ? reels.filter((r) => saved.has(r.id)) : reels;
