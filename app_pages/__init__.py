@@ -1,0 +1,1 @@
+"""Syllabite application pages."""

@@ -1,0 +1,104 @@
+{
+  "university": "Northstar University",
+  "program": "B.Tech Computer Science · Semester 3",
+  "courses": [
+    {
+      "code": "CS201",
+      "name": "Data structures",
+      "accent": "violet",
+      "units": [
+        {
+          "title": "Stacks & queues",
+          "content": [
+            {
+              "id": "cs201-stack-reel",
+              "type": "reel",
+              "badge": "violet",
+              "creator": "stack_sensei",
+              "duration": "32 sec",
+              "hook": "A stack is just a very strict plate collection",
+              "body": "Last in, first out. The newest plate leaves first — exactly how push() and pop() behave.",
+              "beats": ["Push adds to the top", "Pop removes from the top", "Peek reads without removing", "Undo history is a real stack"],
+              "caption": "Exam shortcut: draw the top pointer after every operation. #LIFO #DataStructures",
+              "likes": 1240
+            },
+            {
+              "id": "cs201-queue-meme",
+              "type": "meme",
+              "badge": "blue",
+              "creator": "big_o_energy",
+              "duration": "10 sec",
+              "hook": "When you join the canteen queue and someone cuts in front",
+              "body": "Queue data structure: 'That is not FIFO behavior.'",
+              "caption": "Enqueue at rear. Dequeue at front. Social justice, but make it O(1).",
+              "likes": 2148
+            }
+          ]
+        },
+        {
+          "title": "Trees",
+          "content": []
+        }
+      ]
+    },
+    {
+      "code": "CS203",
+      "name": "Operating systems",
+      "accent": "orange",
+      "units": [
+        {
+          "title": "Process scheduling",
+          "content": [
+            {
+              "id": "cs203-scheduling-meme",
+              "type": "meme",
+              "badge": "orange",
+              "creator": "kernel_panic",
+              "duration": "12 sec",
+              "hook": "Round Robin entering the group project",
+              "body": "Everyone gets exactly one time slice. No favorites. Context switching included.",
+              "caption": "Fair? Yes. Free? Those context switches say otherwise. #CPU",
+              "likes": 1872
+            },
+            {
+              "id": "cs203-deadlock-reel",
+              "type": "reel",
+              "badge": "red",
+              "creator": "os_in_30",
+              "duration": "38 sec",
+              "hook": "Four ingredients that cook up a deadlock",
+              "body": "Mutual exclusion, hold and wait, no preemption, and circular wait. Remove any one and the recipe fails.",
+              "beats": ["One resource, one process", "Hold one while asking for another", "Resources cannot be snatched", "Processes form a waiting circle"],
+              "caption": "Mnemonic: My Hungry Neighbour Circles. #Deadlock #OS",
+              "likes": 1633
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "MA201",
+      "name": "Discrete mathematics",
+      "accent": "blue",
+      "units": [
+        {
+          "title": "Graph theory",
+          "content": [
+            {
+              "id": "ma201-graph-reel",
+              "type": "reel",
+              "badge": "blue",
+              "creator": "proof_or_it_didnt_happen",
+              "duration": "29 sec",
+              "hook": "Your friend group is already a graph",
+              "body": "People are vertices. Friendships are edges. That one social butterfly? High degree vertex.",
+              "beats": ["Vertices represent objects", "Edges represent relationships", "Degree counts connected edges", "A path connects a sequence of vertices"],
+              "caption": "Graph theory was social networking before social networking. #DiscreteMath",
+              "likes": 1094
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
