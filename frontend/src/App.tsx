@@ -158,6 +158,7 @@ function Sidebar({
   savedCount,
   following,
   toggleFollowing,
+  onFindFriends,
 }: {
   active: string;
   setActive: (v: string) => void;
@@ -165,6 +166,7 @@ function Sidebar({
   savedCount: number;
   following: Set<string>;
   toggleFollowing: (username: string) => void;
+  onFindFriends: () => void;
 }) {
   return (
     <aside className="glass fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-white/[.07] px-4 py-5 lg:flex">
@@ -210,7 +212,7 @@ function Sidebar({
         <div className="flex items-center justify-between"><div className="text-[10px] font-bold uppercase tracking-[.18em] text-[#C98F9F]">Friends</div><Users className="size-4 text-[#C98F9F]" /></div>
         <div className="mt-3 flex -space-x-2">{[["AJ", "andrew_judah"], ["OS", "os_in_30"], ["O", "big_o_energy"], ["PD", "proof_daily"]].map(([initials, username]) => <button key={username} onClick={() => toggleFollowing(username)} title={following.has(username) ? `Unfollow ${username}` : `Follow ${username}`} className="rounded-full transition hover:z-10 hover:scale-110"><AvatarBlock initials={initials} className={`size-8 border-2 ${following.has(username) ? "border-[#C98F9F]" : "border-[#0B0B0D] opacity-50"}`} /></button>)}</div>
         <div className="mt-2 text-xs text-white/60">{following.size} people you follow</div>
-        <button onClick={() => setActive("Explore")} className="mt-3 w-full rounded-lg bg-[#6B1F3A] px-2 py-1.5 text-xs font-bold text-white">Find friends</button>
+        <button onClick={onFindFriends} className="mt-3 w-full rounded-lg bg-[#6B1F3A] px-2 py-1.5 text-xs font-bold text-white">Find friends</button>
       </div>
       <Button
         variant="ghost"
@@ -339,6 +341,7 @@ function Topbar({
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
+          id="global-search"
           className="h-10 w-full rounded-xl border border-white/[.08] bg-white/[.04] pl-10 pr-10 text-sm outline-none placeholder:text-zinc-600 focus:border-fuchsia-500/50"
           placeholder="Search courses, topics, creators..."
         />
@@ -1228,7 +1231,7 @@ export default function App() {
   if (active === "Profile")
     return (
       <div>
-        <Sidebar active={active} setActive={setActive} onLogout={logout} savedCount={saved.size} following={following} toggleFollowing={(h) => toggle(following, h, setFollowing)} />
+        <Sidebar active={active} setActive={setActive} onLogout={logout} savedCount={saved.size} following={following} toggleFollowing={(h) => toggle(following, h, setFollowing)} onFindFriends={() => { setActive("Explore"); window.setTimeout(() => document.getElementById("global-search")?.focus(), 50); }} />
         <main className="min-h-screen lg:pl-64">
           <Topbar
             openUpload={() => setUpload(true)}
@@ -1257,7 +1260,7 @@ export default function App() {
   if (active === "Explore" || active === "Progress")
     return (
       <div>
-        <Sidebar active={active} setActive={setActive} onLogout={logout} savedCount={saved.size} following={following} toggleFollowing={(h) => toggle(following, h, setFollowing)} />
+        <Sidebar active={active} setActive={setActive} onLogout={logout} savedCount={saved.size} following={following} toggleFollowing={(h) => toggle(following, h, setFollowing)} onFindFriends={() => { setActive("Explore"); window.setTimeout(() => document.getElementById("global-search")?.focus(), 50); }} />
         <main className="min-h-screen lg:pl-64">
           <Topbar
             openUpload={() => setUpload(true)}
@@ -1284,7 +1287,7 @@ export default function App() {
     );
   return (
     <div>
-      <Sidebar active={active} setActive={setActive} onLogout={logout} savedCount={saved.size} following={following} toggleFollowing={(h) => toggle(following, h, setFollowing)} />
+      <Sidebar active={active} setActive={setActive} onLogout={logout} savedCount={saved.size} following={following} toggleFollowing={(h) => toggle(following, h, setFollowing)} onFindFriends={() => { setActive("Explore"); window.setTimeout(() => document.getElementById("global-search")?.focus(), 50); }} />
       <main className="min-h-screen lg:pl-64">
         <Topbar
           openUpload={() => setUpload(true)}
