@@ -210,17 +210,23 @@ export function AuthFlow({
                     className={field}
                   />
                 </label>
-                <label className="relative block">
-                  <GraduationCap className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-zinc-600" />
-                  <input
-                    name="username"
-                    required
-                    minLength={3}
-                    pattern="[A-Za-z0-9_]+"
-                    placeholder="Username"
-                    className={field}
-                  />
-                </label>
+                <div>
+                  <label className="relative block">
+                    <GraduationCap className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-zinc-600" />
+                    <input
+                      name="username"
+                      required
+                      minLength={3}
+                      pattern="[A-Za-z0-9_]+"
+                      title="Use 3–24 characters: letters, numbers, and underscores only. No spaces."
+                      placeholder="Username (e.g. first_user)"
+                      className={field}
+                      onInvalid={(event) => event.currentTarget.setCustomValidity("Username format: 3–24 characters using letters, numbers, and underscores only. No spaces.")}
+                      onInput={(event) => event.currentTarget.setCustomValidity("")}
+                    />
+                  </label>
+                  <p className="mt-1.5 pl-1 text-[11px] text-[#6B1F3A]/75">3–24 characters · letters, numbers, and underscores only · no spaces</p>
+                </div>
               </>
             )}{" "}
             {mode !== "reset" && (
