@@ -94,6 +94,8 @@ select {
 .interest-card-back { transform: rotateY(180deg); }
 @keyframes baymax-run {
   0% { transform: translateX(-4rem); }
-  100% { transform: translateX(calc(100vw - 5rem)); }
+  100% { transform: translateX(calc(100vw - 9rem)); }
 }
-.baymax-runner { animation: baymax-run 8s linear infinite; }
+.baymax-runner { animation: baymax-run 8s linear forwards; }
+.baymax-stopped { transform: translateX(calc(100vw - 9rem)); }
+.baymax-figure { width: 8rem; height: 7rem; object-fit: contain; mix-blend-mode: multiply; }
