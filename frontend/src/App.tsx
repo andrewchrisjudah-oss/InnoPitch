@@ -962,14 +962,16 @@ function UploadDialog({
   const input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
+  const [course, setCourse] = useState("Data structures");
+  const [unit, setUnit] = useState("");
   const publish = async () => {
     if (!file || !title) return;
     const body = new FormData();
-    body.append("title", title); body.append("course", "Data structures"); body.append("unit", "Student reel"); body.append("file", file);
+    body.append("title", title); body.append("course", course); body.append("unit", unit || "General topic"); body.append("file", file);
     const response = await fetch("/api/reels", { method: "POST", headers: { Authorization: `Bearer ${token}` }, body });
     if (!response.ok) return;
     const result = await response.json();
-    addReel(result.reel); setFile(null); setTitle(""); onOpenChange(false);
+    addReel(result.reel); setFile(null); setTitle(""); setUnit(""); onOpenChange(false);
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -1009,13 +1011,25 @@ function UploadDialog({
             className="h-11 w-full rounded-xl border border-white/10 bg-white/[.04] px-4 text-sm outline-none focus:border-fuchsia-500/50"
           />
           <div className="grid grid-cols-2 gap-3">
-            <select className="h-11 rounded-xl border border-white/10 bg-[#252329] px-3 text-sm">
+            <select value={course} onChange={(e) => { setCourse(e.target.value); setUnit(""); }} className="h-11 rounded-xl border border-white/10 bg-[#252329] px-3 text-sm">
+              <option value="">Choose course</option>
               <option>Data structures</option>
               <option>Operating systems</option>
+              <option>Computer science</option>
+              <option>Biology</option>
+              <option>Chemistry</option>
+              <option>Physics</option>
+              <option>Mathematics</option>
             </select>
-            <select className="h-11 rounded-xl border border-white/10 bg-[#252329] px-3 text-sm">
-              <option>Choose syllabus unit</option>
+            <select value={unit} onChange={(e) => setUnit(e.target.value)} className="h-11 rounded-xl border border-white/10 bg-[#252329] px-3 text-sm">
+              <option value="">Choose Category</option>
               <option>Stacks & queues</option>
+              <option>Trees & graphs</option>
+              <option>Sorting & searching</option>
+              <option>Process scheduling</option>
+              <option>Memory management</option>
+              <option>Exam revision</option>
+              <option>Study tips</option>
             </select>
           </div>
         </div>
