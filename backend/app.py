@@ -59,7 +59,7 @@ def create_session(conn: sqlite3.Connection, user_id: int) -> str:
 def current_user(authorization: str | None = Header(default=None)):
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401,"Sign in required")
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     row = conn.execute("SELECT u.* FROM users u JOIN sessions s ON s.user_id=u.id WHERE s.token=? AND s.expires_at > datetime('now')",(authorization.removeprefix("Bearer "),)).fetchone()
     if not row:
