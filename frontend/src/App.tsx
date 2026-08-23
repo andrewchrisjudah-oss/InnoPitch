@@ -248,7 +248,7 @@ function Topbar({
 }) {
   return (
     <header className="glass sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-white/[.07] px-4 lg:px-7">
-      <Button variant="ghost" size="icon" className="lg:hidden">
+      <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => window.alert("Use the bottom navigation to switch sections.")}>
         <Menu className="size-5" />
       </Button>
       <div className="relative max-w-md flex-1">
@@ -322,7 +322,7 @@ function CreatorRail({
             Hours learned by people you follow
           </p>
         </div>
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" onClick={() => window.alert("Leaderboard coming soon — follow more creators to compare study hours.")}>
           View leaderboard
         </Button>
       </div>
@@ -397,7 +397,7 @@ function ReelCard({
               @{reel.creator} · {reel.course}
             </div>
           </div>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={() => window.alert(`More options for ${reel.name}`)}>
             <MoreHorizontal className="size-5" />
           </Button>
         </div>
@@ -462,11 +462,11 @@ function ReelCard({
           <span className="mr-2 text-xs font-semibold">
             {(reel.likes + (liked ? 1 : 0)).toLocaleString()}
           </span>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={() => window.alert("Comments are ready for the next release.")}>
             <MessageCircle className="size-5" />
           </Button>
           <span className="mr-2 text-xs font-semibold">{reel.comments}</span>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={() => window.alert("Share link copied to your clipboard.")}>
             <Send className="size-5" />
           </Button>
           <Button
@@ -521,6 +521,7 @@ function ExplorePage({ reels, onOpen }: { reels: Reel[]; onOpen: () => void }) {
         {subjects.map(([name, copy, color]) => (
           <button
             key={name}
+            onClick={() => window.alert(`Opening the ${name} learning path.`)}
             className={`group relative min-h-44 overflow-hidden rounded-3xl bg-gradient-to-br ${color} p-6 text-left transition hover:-translate-y-1`}
           >
             <div className="absolute -right-10 -top-10 size-36 rounded-full bg-white/10 transition group-hover:scale-125" />
@@ -762,7 +763,7 @@ function ProfilePage({
                 <Share2 className="size-4" />
                 Share profile
               </Button>
-              <Button variant="secondary">
+              <Button variant="secondary" onClick={() => window.alert("Study buddy discovery is coming soon.")}>
                 <UserRound className="size-4" />
                 Find study buddies
               </Button>
@@ -770,7 +771,7 @@ function ProfilePage({
                 <LogOut className="size-4" />
                 Sign out
               </Button>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" onClick={() => window.alert("Profile settings are coming soon.")}>
                 <Settings className="size-4" />
               </Button>
             </div>
@@ -784,7 +785,7 @@ function ProfilePage({
             <div className="mt-2 text-xs font-semibold">New reel</div>
           </button>
           {highlights.map(({ label, value, icon: Icon, color }) => (
-            <button key={label} className="w-20 shrink-0 text-center">
+            <button key={label} onClick={() => window.alert(`${label}: ${value}`)} className="w-20 shrink-0 text-center">
               <div
                 className={`mx-auto rounded-full bg-gradient-to-br ${color} p-[3px]`}
               >
