@@ -29,6 +29,8 @@ import {
   LogOut,
   Menu,
   MessageCircle,
+  Mic,
+  Bot,
   MoreHorizontal,
   Play,
   Plus,
@@ -233,6 +235,37 @@ function MobileNav({
       ))}
     </nav>
   );
+}
+
+function StudyAssistant({ user }: { user: User }) {
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState("");
+  const [listening, setListening] = useState(false);
+  const [messages, setMessages] = useState([{ role: "assistant", text: `Hey ${user.display_name.split(" ")[0]} — I’m your KNOMO study buddy. Ask me about ${user.interests.slice(0, 2).join(" or ") || "your syllabus"}.` }]);
+  const answer = (question: string) => {
+    const q = question.toLowerCase();
+    if (q.includes("plan") || q.includes("study")) return "Try a focused 25-minute session: choose one syllabus unit, watch one reel, save the key idea, then explain it back in your own words.";
+    if (q.includes("reel") || q.includes("video")) return "Use Create reel in the top bar to upload a syllabus-linked video. Your reel is saved to your profile and shared to the feed.";
+    if (q.includes("progress") || q.includes("hour")) return `You have logged ${user.study_hours} study hours. Open Progress to see your learning summary and keep building the habit.`;
+    if (q.includes("interest") || q.includes("subject")) return `Your current interests are ${user.interests.join(", ") || "not selected yet"}. I can help you choose a focused subject path.`;
+    return "I can help with study plans, syllabus topics, reel ideas, progress, and choosing interests. Try asking: ‘make me a study plan for today’.";
+  };
+  const send = (text = input) => { const clean = text.trim(); if (!clean) return; setMessages((m) => [...m, { role: "user", text: clean }, { role: "assistant", text: answer(clean) }]); setInput(""); };
+  const listen = () => {
+    const Speech = (window as Window & { SpeechRecognition?: any; webkitSpeechRecognition?: any }).SpeechRecognition || (window as Window & { webkitSpeechRecognition?: any }).webkitSpeechRecognition;
+    if (!Speech) { window.alert("Voice input is not supported in this browser. Try Chrome or Edge."); return; }
+    const recognition = new Speech(); recognition.lang = "en-US"; recognition.interimResults = false;
+    recognition.onstart = () => setListening(true); recognition.onend = () => setListening(false);
+    recognition.onerror = () => setListening(false); recognition.onresult = (event: any) => send(event.results[0][0].transcript); recognition.start();
+  };
+  return <div className="fixed bottom-5 right-5 z-50">
+    {open && <div className="mb-3 flex h-[28rem] w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-3xl border border-[#C98F9F]/30 bg-[#0B0B0D]/95 text-[#F7F1EE] shadow-2xl backdrop-blur-xl">
+      <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3"><div className="grid size-9 place-items-center rounded-xl bg-[#6B1F3A]"><Bot className="size-4" /></div><div><div className="text-sm font-bold">KNOMO guide</div><div className="text-[10px] text-white/55">Ask, speak, learn</div></div></div>
+      <div className="flex-1 space-y-3 overflow-y-auto p-4">{messages.map((m, i) => <div key={i} className={`max-w-[90%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${m.role === "user" ? "ml-auto bg-[#C98F9F] text-[#0B0B0D]" : "bg-white/10 text-white/80"}`}>{m.text}</div>)}</div>
+      <div className="flex gap-2 border-t border-white/10 p-3"><input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder="Ask KNOMO..." className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/10 px-3 text-xs outline-none placeholder:text-white/40" /><button onClick={listen} aria-label="Use microphone" className={`grid size-9 place-items-center rounded-xl ${listening ? "bg-[#C98F9F] text-black" : "bg-white/10"}`}><Mic className="size-4" /></button><button onClick={() => send()} aria-label="Send message" className="grid size-9 place-items-center rounded-xl bg-[#6B1F3A]"><Send className="size-4" /></button></div>
+    </div>}
+    <button onClick={() => setOpen(!open)} aria-label="Open KNOMO study assistant" className="grid size-14 place-items-center rounded-full bg-[#6B1F3A] text-white shadow-xl shadow-[#6B1F3A]/30 transition hover:scale-105"><MessageCircle className="size-6" /></button>
+  </div>;
 }
 
 function Topbar({
@@ -1126,6 +1159,7 @@ export default function App() {
           />
         </main>
         <MobileNav active={active} setActive={setActive} />
+        <StudyAssistant user={user} />
         <UploadDialog
           open={upload}
           onOpenChange={setUpload}
@@ -1152,6 +1186,7 @@ export default function App() {
           )}
         </main>
         <MobileNav active={active} setActive={setActive} />
+        <StudyAssistant user={user} />
         <UploadDialog
           open={upload}
           onOpenChange={setUpload}
@@ -1227,6 +1262,7 @@ export default function App() {
         </div>
       </main>
       <MobileNav active={active} setActive={setActive} />
+      <StudyAssistant user={user} />
       <UploadDialog
         open={upload}
         onOpenChange={setUpload}
