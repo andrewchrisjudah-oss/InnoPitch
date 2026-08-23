@@ -426,16 +426,27 @@ function ReelCard({
   reel,
   liked,
   saved,
+  token,
   onLike,
   onSave,
 }: {
   reel: Reel;
   liked: boolean;
   saved: boolean;
+  token: string;
   onLike: () => void;
   onSave: () => void;
 }) {
   const [muted, setMuted] = useState(true);
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [comments, setComments] = useState<any[]>([]);
+  const [commentText, setCommentText] = useState("");
+  const loadComments = () => fetch(`/api/reels/${reel.id}/comments`, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()).then((x) => setComments(x.comments || []));
+  const addComment = async () => {
+    if (!commentText.trim()) return;
+    const response = await fetch(`/api/reels/${reel.id}/comments`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ body: commentText.trim() }) });
+    if (response.ok) { const result = await response.json(); setComments((current) => [...current, result.comment]); setCommentText(""); }
+  };
   return (
     <Card className="animate-enter overflow-hidden">
       <CardHeader>
@@ -519,7 +530,7 @@ function ReelCard({
           <span className="mr-2 text-xs font-semibold">
             {(reel.likes + (liked ? 1 : 0)).toLocaleString()}
           </span>
-          <Button variant="ghost" size="icon" onClick={() => window.alert("Comments are ready for the next release.")}>
+          <Button variant="ghost" size="icon" onClick={() => { setCommentsOpen(true); void loadComments(); }}>
             <MessageCircle className="size-5" />
           </Button>
           <span className="mr-2 text-xs font-semibold">{reel.comments}</span>
@@ -548,6 +559,13 @@ function ReelCard({
           </span>
         </div>
       </CardContent>
+      <Dialog open={commentsOpen} onOpenChange={setCommentsOpen}>
+        <DialogContent>
+          <DialogTitle className="text-xl font-black">Comments</DialogTitle>
+          <div className="mt-4 max-h-72 space-y-3 overflow-y-auto">{comments.length ? comments.map((comment) => <div key={comment.id} className="rounded-xl bg-white/5 p-3 text-sm"><b>{comment.username}</b><p className="mt-1 text-zinc-300">{comment.body}</p></div>) : <p className="text-sm text-zinc-500">Be the first to comment.</p>}</div>
+          <div className="mt-4 flex gap-2"><input value={commentText} onChange={(e) => setCommentText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && void addComment()} placeholder="Add a thoughtful comment..." className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/5 px-3 text-sm" /><Button variant="accent" onClick={addComment}>Post</Button></div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
@@ -1280,6 +1298,7 @@ export default function App() {
                   <ReelCard
                     key={r.id}
                     reel={r}
+                    token={token}
                     liked={liked.has(r.id)}
                     saved={saved.has(r.id)}
                     onLike={() => toggle(liked, r.id, setLiked)}

@@ -47,6 +47,9 @@ class StudyBody(BaseModel):
     subject: str = Field(default="General study", min_length=1, max_length=80)
     duration_seconds: int = Field(ge=0, le=86400)
 
+class CommentBody(BaseModel):
+    body: str = Field(min_length=1, max_length=500)
+
 def public_user(row: sqlite3.Row, conn: sqlite3.Connection) -> dict:
     interests = [r["name"] for r in conn.execute("SELECT i.name FROM interests i JOIN user_interests ui ON ui.interest_id=i.id WHERE ui.user_id=? ORDER BY i.name", (row["id"],))]
     return {"id":row["id"],"email":row["email"],"display_name":row["display_name"],"username":row["username"],"study_hours":round(row["study_seconds"]/3600,1),"streak":row["current_streak"],"interests":interests,"needs_onboarding":len(interests)<3}
@@ -170,6 +173,26 @@ async def create_reel(title: str = Form(...), course: str = Form("Data structure
         conn.commit()
         row = conn.execute("SELECT r.*,u.username,u.display_name FROM reels r JOIN users u ON u.id=r.user_id WHERE r.id=?", (reel_id,)).fetchone()
         return {"reel": reel_json(row)}
+    finally: conn.close()
+
+@app.get("/api/reels/{reel_id}/comments")
+def get_comments(reel_id: str, auth=Depends(current_user)):
+    user, conn = auth
+    try:
+        rows = conn.execute("SELECT c.id,c.body,c.created_at,u.username,u.display_name FROM reel_comments c JOIN users u ON u.id=c.user_id WHERE c.reel_id=? ORDER BY c.created_at ASC", (reel_id,)).fetchall()
+        return {"comments": [dict(row) for row in rows]}
+    finally: conn.close()
+
+@app.post("/api/reels/{reel_id}/comments")
+def add_comment(reel_id: str, body: CommentBody, auth=Depends(current_user)):
+    user, conn = auth
+    try:
+        if not conn.execute("SELECT 1 FROM reels WHERE id=?", (reel_id,)).fetchone(): raise HTTPException(404, "Reel not found")
+        conn.execute("INSERT INTO reel_comments(reel_id,user_id,body) VALUES(?,?,?)", (reel_id, user["id"], body.body.strip()))
+        conn.execute("UPDATE reels SET comments=comments+1 WHERE id=?", (reel_id, reel_id))
+        conn.commit()
+        row = conn.execute("SELECT c.id,c.body,c.created_at,u.username,u.display_name FROM reel_comments c JOIN users u ON u.id=c.user_id WHERE c.reel_id=? ORDER BY c.id DESC LIMIT 1", (reel_id,)).fetchone()
+        return {"comment": dict(row)}
     finally: conn.close()
 
 @app.get("/media/featured-space-facts.mp4")
