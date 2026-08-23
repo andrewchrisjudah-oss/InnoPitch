@@ -87,3 +87,8 @@ select {
 .video-mask {
   background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent 50%);
 }
+.interest-card { perspective: 900px; }
+.interest-card-inner { position: relative; min-height: 10rem; height: 100%; transform-style: preserve-3d; transition: transform .55s cubic-bezier(.2,.7,.2,1); }
+.interest-card:hover .interest-card-inner { transform: rotateY(180deg); }
+.interest-card-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 1rem; }
+.interest-card-back { transform: rotateY(180deg); }

@@ -321,6 +321,9 @@ export function InterestOnboarding({
   const [options, setOptions] = useState<{ name: string; icon: string }[]>([]);
   const [selected, setSelected] = useState(new Set<string>());
   const [error, setError] = useState("");
+  const descriptions: Record<string, string> = {
+    Astronomy: "Stars, planets, and the systems beyond us.", Biology: "Cells, genetics, and the science of life.", Chemistry: "Reactions, matter, and the world in motion.", Physics: "Forces, energy, and how things work.", Mathematics: "Patterns, proofs, and problem solving.", "Computer science": "Algorithms, systems, and building the future.", Psychology: "The mind, behavior, and human connection.", History: "People, power, and the stories that shaped us.", Economics: "Decisions, markets, and everyday tradeoffs.", Literature: "Ideas, language, and worlds made of words.", Medicine: "Health, anatomy, and caring for people.", Engineering: "Design, invention, and practical solutions.",
+  };
   useEffect(() => {
     request("/api/interests").then((x) => setOptions(x.interests));
   }, []);
@@ -337,25 +340,25 @@ export function InterestOnboarding({
     }
   };
   return (
-    <main className="min-h-screen px-5 py-10 sm:px-10">
+    <main className="min-h-screen bg-[#EFE7E3] px-5 py-8 sm:px-10 sm:py-12">
       <div className="mx-auto max-w-5xl">
         <div className="mb-10 flex items-center justify-between">
           <KnomoBrand compact />
           <div className="text-xs text-zinc-600">Step 1 of 1</div>
         </div>
         <div className="max-w-2xl">
-          <div className="text-xs font-bold uppercase tracking-[.2em] text-fuchsia-400">
-            Personalize your feed
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#6B1F3A]/20 bg-[#6B1F3A]/10 px-3 py-1 text-xs font-bold uppercase tracking-[.2em] text-[#6B1F3A]">
+            <Sparkles className="size-3" /> Personalize your feed
           </div>
-          <h1 className="mt-3 text-4xl font-black sm:text-5xl">
+          <h1 className="mt-4 max-w-4xl text-4xl font-black leading-[1.02] tracking-tight text-[#0B0B0D] sm:text-6xl">
             What sparks your curiosity, {user.display_name.split(" ")[0]}?
           </h1>
-          <p className="mt-4 text-zinc-500">
+          <p className="mt-5 max-w-2xl text-base leading-relaxed text-[#6B1F3A]/75">
             Choose at least three interests. We’ll mix these with your
             university syllabus to build a feed that feels made for you.
           </p>
         </div>
-        <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {options.map((item) => {
             const Icon = icons[item.name] || BookOpen;
             const active = selected.has(item.name);
@@ -367,16 +370,18 @@ export function InterestOnboarding({
                   active ? n.delete(item.name) : n.add(item.name);
                   setSelected(n);
                 }}
-                className={`relative min-h-36 rounded-2xl border p-5 text-left transition hover:-translate-y-1 ${active ? "border-fuchsia-400 bg-fuchsia-500/10 shadow-xl shadow-fuchsia-950/30" : "border-white/[.08] bg-white/[.025] hover:border-white/20"}`}
+                className={`interest-card relative min-h-40 rounded-2xl border p-0 text-left transition hover:-translate-y-1 ${active ? "border-[#6B1F3A] bg-[#6B1F3A] shadow-xl shadow-[#6B1F3A]/25" : "border-[#0B0B0D]/10 bg-white/70 hover:border-[#6B1F3A]/50"}`}
               >
-                <div
-                  className={`mb-7 grid size-10 place-items-center rounded-xl ${active ? "bg-fuchsia-500 text-white" : "bg-white/5 text-zinc-500"}`}
-                >
-                  <Icon className="size-5" />
+                <div className="interest-card-inner">
+                  <div className="interest-card-face interest-card-front p-5">
+                    <div className={`mb-8 grid size-11 place-items-center rounded-2xl ${active ? "bg-white/15 text-[#F7F1EE]" : "bg-[#6B1F3A]/10 text-[#6B1F3A]"}`}><Icon className="size-5" /></div>
+                    <div className={`font-bold ${active ? "text-white" : "text-[#0B0B0D]"}`}>{item.name}</div>
+                    <div className={`mt-1 text-[11px] ${active ? "text-white/70" : "text-[#6B1F3A]/65"}`}>Hover to explore</div>
+                  </div>
+                  <div className="interest-card-face interest-card-back bg-[#252329] p-5 text-[#F7F1EE]"><Icon className="mb-3 size-5 text-[#C98F9F]" /><div className="text-sm font-bold">{item.name}</div><p className="mt-2 text-xs leading-relaxed text-white/70">{descriptions[item.name] || "Build a smarter feed around this subject."}</p></div>
                 </div>
-                <div className="font-bold">{item.name}</div>
                 {active && (
-                  <span className="absolute right-4 top-4 grid size-6 place-items-center rounded-full bg-fuchsia-500">
+                  <span className="absolute right-4 top-4 z-10 grid size-6 place-items-center rounded-full bg-[#F7F1EE] text-[#6B1F3A]">
                     <Check className="size-3" />
                   </span>
                 )}
@@ -384,9 +389,9 @@ export function InterestOnboarding({
             );
           })}
         </div>
-        <div className="sticky bottom-4 mt-8 flex items-center justify-between rounded-2xl border border-[#F7F1EE]/10 bg-[#344650]/90 p-4 backdrop-blur-xl">
-          <span className="text-sm text-zinc-500">
-            <b className="text-white">{selected.size}</b> selected · minimum 3
+        <div className="sticky bottom-4 mt-8 flex items-center justify-between rounded-2xl border border-[#0B0B0D]/10 bg-[#0B0B0D]/95 p-4 text-[#F7F1EE] shadow-2xl backdrop-blur-xl">
+          <span className="text-sm text-white/65">
+            <b className="text-white">{selected.size}</b> selected · choose 3+ subjects
           </span>
           <Button variant="accent" disabled={selected.size < 3} onClick={save}>
             Build my feed
