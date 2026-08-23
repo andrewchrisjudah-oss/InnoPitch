@@ -324,9 +324,11 @@ function Topbar({
 }) {
   const [users, setUsers] = useState<any[]>([]);
   const [requestCount, setRequestCount] = useState(0);
+  const [requests, setRequests] = useState<any[]>([]);
   useEffect(() => { if (search.trim().length < 2) { setUsers([]); return; } const timer = window.setTimeout(() => fetch(`/api/users/search?q=${encodeURIComponent(search)}`, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()).then((x) => setUsers(x.users || [])).catch(() => setUsers([])), 250); return () => window.clearTimeout(timer); }, [search, token]);
-  useEffect(() => { const load = () => fetch("/api/friend-requests", { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()).then((x) => setRequestCount((x.requests || []).length)).catch(() => undefined); void load(); const timer = window.setInterval(load, 10000); return () => window.clearInterval(timer); }, [token]);
+  useEffect(() => { const load = () => fetch("/api/friend-requests", { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()).then((x) => { setRequests(x.requests || []); setRequestCount((x.requests || []).length); }).catch(() => undefined); void load(); const timer = window.setInterval(load, 10000); return () => window.clearInterval(timer); }, [token]);
   const request = async (id: number) => { await fetch("/api/friend-requests", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ recipient_id: id }) }); setUsers((list) => list.filter((u) => u.id !== id)); };
+  const decide = async (id: number, status: "accepted" | "declined") => { await fetch(`/api/friend-requests/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ status }) }); setRequests((list) => list.filter((r) => r.id !== id)); };
   return (
     <header className="glass sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-white/[.07] px-4 lg:px-7">
       <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => window.alert("Use the bottom navigation to switch sections.")}>
@@ -354,11 +356,12 @@ function Topbar({
         <Plus className="size-4" />
         Create reel
       </Button>
-      <Button variant="ghost" size="icon" className="relative" onClick={() => window.alert(requestCount ? `You have ${requestCount} friend request${requestCount === 1 ? "" : "s"}.` : "You’re all caught up — no new notifications.")}>
+      <Button variant="ghost" size="icon" className="relative" onClick={() => setUsers([])}>
         <Bell className="size-5" />
         <span className="absolute right-2 top-2 size-2 rounded-full bg-rose-500 ring-2 ring-[#0B0B0D]" />
         {requestCount > 0 && <span className="absolute -right-1 -top-1 rounded-full bg-[#C98F9F] px-1 text-[9px] font-black text-[#0B0B0D]">{requestCount}</span>}
       </Button>
+      {requests.length > 0 && <div className="absolute right-16 top-14 z-50 w-72 rounded-2xl border border-[#C98F9F]/30 bg-[#0B0B0D] p-3 text-white shadow-2xl"><div className="mb-2 text-xs font-bold uppercase tracking-wider text-[#C98F9F]">Friend requests</div>{requests.map((r) => <div key={r.id} className="flex items-center justify-between gap-2 border-b border-white/10 py-2 last:border-0"><div><div className="text-sm font-bold">{r.display_name}</div><div className="text-[11px] text-white/50">@{r.username}</div></div><div className="flex gap-1"><button onClick={() => decide(r.id, "accepted")} className="rounded bg-[#C98F9F] px-2 py-1 text-[10px] font-bold text-black">Accept</button><button onClick={() => decide(r.id, "declined")} className="rounded bg-white/10 px-2 py-1 text-[10px]">Decline</button></div></div>)}</div>}
       <button
         onClick={openProfile}
         className="rounded-full ring-2 ring-transparent transition hover:ring-[#C98F9F]"

@@ -53,6 +53,9 @@ class CommentBody(BaseModel):
 class FriendRequestBody(BaseModel):
     recipient_id: int
 
+class FriendRequestDecision(BaseModel):
+    status: str = Field(pattern="^(accepted|declined)$")
+
 def public_user(row: sqlite3.Row, conn: sqlite3.Connection) -> dict:
     interests = [r["name"] for r in conn.execute("SELECT i.name FROM interests i JOIN user_interests ui ON ui.interest_id=i.id WHERE ui.user_id=? ORDER BY i.name", (row["id"],))]
     return {"id":row["id"],"email":row["email"],"display_name":row["display_name"],"username":row["username"],"study_hours":round(row["study_seconds"]/3600,1),"streak":row["current_streak"],"interests":interests,"needs_onboarding":len(interests)<3}
@@ -169,6 +172,16 @@ def send_friend_request(body: FriendRequestBody, auth=Depends(current_user)):
         return {"message": "Friend request sent"}
     except sqlite3.IntegrityError as exc:
         raise HTTPException(409, "Request already sent") from exc
+    finally: conn.close()
+
+@app.patch("/api/friend-requests/{request_id}")
+def decide_friend_request(request_id: int, body: FriendRequestDecision, auth=Depends(current_user)):
+    user, conn = auth
+    try:
+        changed = conn.execute("UPDATE friend_requests SET status=? WHERE id=? AND recipient_id=? AND status='pending'", (body.status, request_id, user["id"])).rowcount
+        if not changed: raise HTTPException(404, "Friend request not found")
+        conn.commit()
+        return {"message": f"Request {body.status}"}
     finally: conn.close()
 
 @app.put("/api/me/interests")
