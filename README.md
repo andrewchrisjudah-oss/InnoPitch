@@ -23,6 +23,12 @@ python -m pip install -r requirements.txt
 streamlit run streamlit_app.py
 ```
 
+## Deploy publicly
+
+The repository includes `Dockerfile` and `render.yaml` for a public Render deployment. Create a Render account, choose **New → Blueprint**, connect this GitHub repository, and select `render.yaml`. Render will build the React frontend, start the FastAPI server, and give you a public HTTPS URL to share.
+
+SQLite is suitable for the prototype. For production scale, move account and usage data to the included MySQL schema or a managed PostgreSQL database before enabling multiple production instances.
+
 ## Use your university syllabus
 
 Open **Change syllabus** in the sidebar and upload a JSON file matching `data/sample_syllabus.json`. Each course contains units, and each unit contains content items of type `reel`, `meme`, or `quiz`.
