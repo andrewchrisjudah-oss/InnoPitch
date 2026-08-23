@@ -155,10 +155,12 @@ function Sidebar({
   active,
   setActive,
   onLogout,
+  savedCount,
 }: {
   active: string;
   setActive: (v: string) => void;
   onLogout: () => void;
+  savedCount: number;
 }) {
   return (
     <aside className="glass fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-white/[.07] px-4 py-5 lg:flex">
@@ -175,9 +177,7 @@ function Sidebar({
             <Icon className="size-4" />
             {label}
             {label === "Saved" && (
-              <span className="ml-auto rounded-full bg-white/10 px-2 text-xs">
-                2
-              </span>
+              savedCount > 0 && <span className="ml-auto rounded-full bg-white/10 px-2 text-xs">{savedCount}</span>
             )}
           </button>
         ))}
@@ -1181,7 +1181,7 @@ export default function App() {
   if (active === "Profile")
     return (
       <div>
-        <Sidebar active={active} setActive={setActive} onLogout={logout} />
+        <Sidebar active={active} setActive={setActive} onLogout={logout} savedCount={saved.size} />
         <main className="min-h-screen lg:pl-64">
           <Topbar
             openUpload={() => setUpload(true)}
@@ -1209,7 +1209,7 @@ export default function App() {
   if (active === "Explore" || active === "Progress")
     return (
       <div>
-        <Sidebar active={active} setActive={setActive} onLogout={logout} />
+        <Sidebar active={active} setActive={setActive} onLogout={logout} savedCount={saved.size} />
         <main className="min-h-screen lg:pl-64">
           <Topbar
             openUpload={() => setUpload(true)}
@@ -1235,7 +1235,7 @@ export default function App() {
     );
   return (
     <div>
-      <Sidebar active={active} setActive={setActive} onLogout={logout} />
+      <Sidebar active={active} setActive={setActive} onLogout={logout} savedCount={saved.size} />
       <main className="min-h-screen lg:pl-64">
         <Topbar
           openUpload={() => setUpload(true)}
