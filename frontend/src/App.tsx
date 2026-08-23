@@ -272,7 +272,7 @@ function Topbar({
         <Plus className="size-4" />
         Create reel
       </Button>
-      <Button variant="ghost" size="icon" className="relative">
+      <Button variant="ghost" size="icon" className="relative" onClick={() => window.alert("You’re all caught up — no new notifications.")}>
         <Bell className="size-5" />
         <span className="absolute right-2 top-2 size-2 rounded-full bg-rose-500 ring-2 ring-[#0B0B0D]" />
       </Button>
@@ -1181,7 +1181,7 @@ export default function App() {
               </p>
             </div>
             <div className="flex gap-2">
-              <Button variant="secondary">
+              <Button variant="secondary" onClick={() => setActive("Progress")}>
                 <Clock3 className="size-4" />
                 {user.study_hours} hours learned
               </Button>
