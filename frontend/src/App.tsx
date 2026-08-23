@@ -244,6 +244,7 @@ function StudyAssistant({ user }: { user: User }) {
   const [wakeEnabled, setWakeEnabled] = useState(false);
   const wakeRecognition = useRef<any>(null);
   const [runnerDone, setRunnerDone] = useState(false);
+  const [runRequested, setRunRequested] = useState(false);
   const [messages, setMessages] = useState([{ role: "assistant", text: `Hey ${user.display_name.split(" ")[0]} — I’m your KNOMO study buddy. Ask me about ${user.interests.slice(0, 2).join(" or ") || "your syllabus"}.` }]);
   const answer = (question: string) => {
     const q = question.toLowerCase();
@@ -266,20 +267,20 @@ function StudyAssistant({ user }: { user: User }) {
     if (!Speech) { window.alert("Voice activation is not supported in this browser. Try Chrome or Edge."); return; }
     if (wakeEnabled) { wakeRecognition.current?.stop(); setWakeEnabled(false); return; }
     const recognition = new Speech(); recognition.lang = "en-US"; recognition.continuous = true; recognition.interimResults = true;
-    recognition.onresult = (event: any) => { const transcript = Array.from(event.results).slice(event.resultIndex).map((r: any) => r[0].transcript).join(" ").toLowerCase(); if (transcript.includes("baymax")) { setOpen(true); setMessages((m) => [...m, { role: "assistant", text: "I’m here. How can I help you learn?" }]); } };
+    recognition.onresult = (event: any) => { const transcript = Array.from(event.results).slice(event.resultIndex).map((r: any) => r[0].transcript).join(" ").toLowerCase(); if (transcript.includes("baymax")) { setOpen(false); setRunnerDone(false); setRunRequested(true); setMessages((m) => [...m, { role: "assistant", text: "I’m here. How can I help you learn?" }]); } };
     recognition.onerror = () => setWakeEnabled(false); recognition.onend = () => { if (wakeEnabled) { try { recognition.start(); } catch {} } };
     wakeRecognition.current = recognition; setWakeEnabled(true); recognition.start();
   };
   const greet = () => { if ("speechSynthesis" in window) { window.speechSynthesis.cancel(); window.speechSynthesis.speak(new SpeechSynthesisUtterance("I'm Baymax. How may I help you?")); } };
-  const closeChat = () => { setOpen(false); setRunnerDone(false); };
+  const closeChat = () => { setOpen(false); setRunnerDone(false); setRunRequested(false); };
   return <div className="pointer-events-none fixed inset-x-0 bottom-3 z-50">
     {open && <div className="mb-3 ml-auto mr-5 flex h-[28rem] w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-3xl border border-[#C98F9F]/30 bg-[#0B0B0D]/95 text-[#F7F1EE] shadow-2xl backdrop-blur-xl">
       <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3"><div className="grid size-9 place-items-center rounded-xl bg-[#6B1F3A]"><Bot className="size-4" /></div><div className="min-w-0 flex-1"><div className="text-sm font-bold">Baymax</div><div className="text-[10px] text-white/55">Your KNOMO study companion</div></div><button onClick={toggleWakeWord} className={`rounded-lg px-2 py-1 text-[10px] font-bold ${wakeEnabled ? "bg-[#C98F9F] text-[#0B0B0D]" : "bg-white/10 text-white/70"}`}>{wakeEnabled ? "Listening" : "Wake word"}</button></div>
       <div className="flex-1 space-y-3 overflow-y-auto p-4">{messages.map((m, i) => <div key={i} className={`max-w-[90%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${m.role === "user" ? "ml-auto bg-[#C98F9F] text-[#0B0B0D]" : "bg-white/10 text-white/80"}`}>{m.text}</div>)}</div>
       <div className="flex gap-2 border-t border-white/10 p-3"><input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder="Ask KNOMO..." className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/10 px-3 text-xs outline-none placeholder:text-white/40" /><button onClick={listen} aria-label="Use microphone" className={`grid size-9 place-items-center rounded-xl ${listening ? "bg-[#C98F9F] text-black" : "bg-white/10"}`}><Mic className="size-4" /></button><button onClick={() => send()} aria-label="Send message" className="grid size-9 place-items-center rounded-xl bg-[#6B1F3A]"><Send className="size-4" /></button></div>
     </div>}
-    <button onAnimationEnd={() => { if (!runnerDone) { setRunnerDone(true); setOpen(true); greet(); } }} onClick={() => { if (open) closeChat(); else { setOpen(true); greet(); } }} aria-label={open ? "Close Baymax study assistant" : "Open Baymax study assistant"} className={`${open ? "pointer-events-auto absolute right-5 bottom-0 rounded-full bg-red-700 p-3 shadow-red-900/40" : `baymax-runner pointer-events-auto absolute bottom-0 left-0 ${runnerDone ? "baymax-stopped" : ""}`} relative overflow-hidden transition hover:scale-105`}>
-      {open ? <MessageCircle className="size-6 text-white" /> : <video src="/baymax-transparent.webm#t=0,8" autoPlay muted playsInline className="baymax-figure" />}
+    <button onAnimationEnd={() => { if (!runnerDone) { setRunnerDone(true); setOpen(true); setRunRequested(false); greet(); } }} onClick={() => { if (open) closeChat(); else toggleWakeWord(); }} aria-label={open ? "Close Baymax study assistant" : "Enable Baymax microphone"} className={`${open ? "pointer-events-auto absolute right-5 bottom-0 rounded-full bg-red-700 p-3 shadow-red-900/40" : `${runRequested ? "baymax-runner" : "baymax-idle"} pointer-events-auto absolute bottom-0 left-0 ${runnerDone ? "baymax-stopped" : ""}`} relative overflow-hidden transition hover:scale-105`}>
+      {open ? <MessageCircle className="size-6 text-white" /> : <video src="/baymax-transparent.webm#t=4,8" autoPlay={runRequested} muted playsInline className="baymax-figure" />}
     </button>
   </div>;
 }

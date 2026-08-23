@@ -97,5 +97,6 @@ select {
   100% { transform: translateX(calc(100vw - 9rem)); }
 }
 .baymax-runner { animation: baymax-run 8s linear forwards; }
+.baymax-idle { transform: translateX(calc(100vw - 9rem)); }
 .baymax-stopped { transform: translateX(calc(100vw - 9rem)); }
 .baymax-figure { width: 8rem; height: 7rem; object-fit: contain; }
