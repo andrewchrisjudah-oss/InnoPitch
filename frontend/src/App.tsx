@@ -260,11 +260,11 @@ function StudyAssistant({ user }: { user: User }) {
   };
   return <div className="fixed bottom-5 right-5 z-50">
     {open && <div className="mb-3 flex h-[28rem] w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-3xl border border-[#C98F9F]/30 bg-[#0B0B0D]/95 text-[#F7F1EE] shadow-2xl backdrop-blur-xl">
-      <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3"><div className="grid size-9 place-items-center rounded-xl bg-[#6B1F3A]"><Bot className="size-4" /></div><div><div className="text-sm font-bold">KNOMO guide</div><div className="text-[10px] text-white/55">Ask, speak, learn</div></div></div>
+      <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3"><div className="grid size-9 place-items-center rounded-xl bg-[#6B1F3A]"><Bot className="size-4" /></div><div><div className="text-sm font-bold">Baymax</div><div className="text-[10px] text-white/55">Your KNOMO study companion</div></div></div>
       <div className="flex-1 space-y-3 overflow-y-auto p-4">{messages.map((m, i) => <div key={i} className={`max-w-[90%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${m.role === "user" ? "ml-auto bg-[#C98F9F] text-[#0B0B0D]" : "bg-white/10 text-white/80"}`}>{m.text}</div>)}</div>
       <div className="flex gap-2 border-t border-white/10 p-3"><input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder="Ask KNOMO..." className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/10 px-3 text-xs outline-none placeholder:text-white/40" /><button onClick={listen} aria-label="Use microphone" className={`grid size-9 place-items-center rounded-xl ${listening ? "bg-[#C98F9F] text-black" : "bg-white/10"}`}><Mic className="size-4" /></button><button onClick={() => send()} aria-label="Send message" className="grid size-9 place-items-center rounded-xl bg-[#6B1F3A]"><Send className="size-4" /></button></div>
     </div>}
-    <button onClick={() => setOpen(!open)} aria-label="Open KNOMO study assistant" className="grid size-14 place-items-center rounded-full bg-[#6B1F3A] text-white shadow-xl shadow-[#6B1F3A]/30 transition hover:scale-105"><MessageCircle className="size-6" /></button>
+    <button onClick={() => setOpen(!open)} aria-label="Open Baymax study assistant" className="grid size-14 place-items-center rounded-full bg-[#6B1F3A] text-white shadow-xl shadow-[#6B1F3A]/30 transition hover:scale-105"><MessageCircle className="size-6" /></button>
   </div>;
 }
 
